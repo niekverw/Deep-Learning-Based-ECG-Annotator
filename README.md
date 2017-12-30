@@ -1,7 +1,7 @@
 # Annotation (or segmentation) of the electrocardiogram (ECG) with a long short-term memory neural network. 
 Here, I experimented with annotating peaks of the ECG using a recurrent neural network in tensorflow's Keras.
 In the beginning I struggled a bit to get the input/output right, which had to do with the way I tried to format ECG-peaks (as a sparse vector containing peaks (1) vs no peaks (0)). Aproaching it as a semantic segmentation problem (e.g. Seq2Seq) solved it for me. 
-<br>It seems to work well on the QT database of physionet, but there are some cases that it has never seen where it fails; I haven't played with augmenting the data, which may help alot.
+<br>It seems to work well on the QT database of physionet, but there are some cases that it has never seen where it fails; I haven't played with augmenting the ecgs yet.
  
 ## Model
 
