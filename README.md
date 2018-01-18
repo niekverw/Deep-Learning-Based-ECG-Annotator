@@ -20,7 +20,7 @@ model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accurac
 ```
 
 ## Getting Started
-- Download ECG data using <code>wget -A hea -m -p -K -k -np https://physionet.org/physiobank/database/qtdb/</code>
+- Download ECG data using something like <code>wget -r -l1 --no-parent https://physionet.org/physiobank/database/qtdb/</code>
 - Run, with as the first argument the directory where the ECG data is stored; or set <code>qtdbpath</code>.
 
 ## Output
