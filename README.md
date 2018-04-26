@@ -28,3 +28,7 @@ A 2 lead ECG, the colors indicate P-Pend(yellow),Pend-Q(green), Q-R(red),R-S(pur
 ![example output](https://github.com/niekverw/Deep-Learning-Based-ECG-Annotator/blob/master/images/example.png?raw=true)
 - Colors at the top show true annotations
 - Colors at the bottom show predicted annotations
+
+## Dependencies
+I haven't got a list of all dependencies; but use this:  
+- wfdb 1.3.4 ( not the newest >2.0, thanks BrettMontague)
