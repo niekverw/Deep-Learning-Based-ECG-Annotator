@@ -31,4 +31,4 @@ A 2 lead ECG, the colors indicate P-Pend(yellow),Pend-Q(green), Q-R(red),R-S(pur
 
 ## Dependencies
 I haven't got a list of all dependencies; but use this:  
-- wfdb 1.3.4 ( not the newest >2.0, thanks BrettMontague)
+- wfdb 1.3.4 ( not the newest >2.0, thanks BrettMontague); pip install wfdb==1.3.4
