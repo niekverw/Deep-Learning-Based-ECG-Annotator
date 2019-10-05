@@ -3,6 +3,12 @@ Here, I experimented with annotating peaks of the ECG using a recurrent neural n
 In the beginning I struggled a bit to get the input/output right, which had to do with the way I tried to format ECG-peaks (as a sparse vector containing peaks (1) vs no peaks (0)). Aproaching it as a semantic segmentation problem (e.g. Seq2Seq) solved it for me. 
 <br>It seems to work well on the QT database of physionet, but there are some cases that it has never seen where it fails; I haven't played with augmenting the ecgs yet.
  
+[5oct 2019]
+Since posting this 3 years ago, I noticed several publications using the (exact) same principle:
+- Matlab: https://www.mathworks.com/help/signal/examples/waveform-segmentation-using-deep-learning.html
+- IEEE: https://ieeexplore.ieee.org/document/8333406
+
+
 ## Model
 
 ```
