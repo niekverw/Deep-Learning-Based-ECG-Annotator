@@ -54,11 +54,8 @@ def get_ecg_data(datfile):
     # wfdb.plotrec(record, annotation=annotation2, title='Record 100 from MIT-BIH Arrhythmia Database',timeunits='seconds')
 
     VctAnnotations = list(zip(annotation.sample, annotation.symbol))  ## zip coordinates + annotations (N),(t) etc)
-    # print(VctAnnotations)
     for i in range(len(VctAnnotations)):
-        # print(VctAnnotations[i]) # Print to display annotations of an ecg
         try:
-
             if VctAnnotations[i][1] == "p":
                 if VctAnnotations[i - 1][1] == "(":
                     pstart = VctAnnotations[i - 1][0] - FirstLstannot
@@ -75,15 +72,14 @@ def get_ecg_data(datfile):
                             tpos = VctAnnotations[i + ii][0]
                             if VctAnnotations[i + ii + 1][1] == ")":
                                 tendpos = VctAnnotations[i + ii + 1][0] - FirstLstannot
-                                # print(ppos,qpos,rpos,spos,tendpos)
                                 VctAnnotationHot[0][pstart:pend] = 1  # P segment
-                                VctAnnotationHot[1][
-                                pend:qpos] = 1  # part "nothing" between P and Q, previously left unnanotated, but categorical probably can't deal with that
+                                # part "nothing" between P and Q, previously left unnanotated, but categorical probably can't deal with that
+                                VctAnnotationHot[1][pend:qpos] = 1
                                 VctAnnotationHot[2][qpos:rpos] = 1  # QR
                                 VctAnnotationHot[3][rpos:spos] = 1  # RS
                                 VctAnnotationHot[4][spos:tendpos] = 1  # ST (from end of S to end of T)
-                                VctAnnotationHot[5][
-                                pstart:tendpos] = 0  # tendpos:pstart becomes 1, because it is inverted above
+                                # tendpos:pstart becomes 1, because it is inverted above
+                                VctAnnotationHot[5][pstart:tendpos] = 0
                                 break
         except IndexError:
             pass
