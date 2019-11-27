@@ -8,8 +8,7 @@ __pycache__/
 
 
 # data
-*.mat
-./data/*.mat
+qt-database-1.0.0/
 
 # idea
 .idea/

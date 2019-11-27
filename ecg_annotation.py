@@ -43,18 +43,17 @@ def get_ecg_data(datfile):
     record = wfdb.rdsamp(recordname, sampfrom=FirstLstannot, sampto=LastLstannot)  # wfdb.showanncodes()
     annotation = wfdb.rdann(recordname, annotator, sampfrom=FirstLstannot,
                             sampto=LastLstannot)  ## get annotation between first and last.
-    annotation2 = wfdb.Annotation(recordname='sel32', extension='niek', sample=(annotation.sample - FirstLstannot),
-                                  symbol=annotation.symbol, aux_note=annotation.aux_note)
+    # annotation2 = wfdb.Annotation(recordname='sel32', extension='niek', sample=(annotation.sample - FirstLstannot),symbol=annotation.symbol, aux_note=annotation.aux_note)
 
     Vctrecord = np.transpose(record.p_signals)
     VctAnnotationHot = np.zeros((6, len(Vctrecord[1])), dtype=np.int)
     VctAnnotationHot[5] = 1  ## inverse of the others
-    # print("ecg, 2 lead of shape" , Vctrecord.shape)
-    # print("VctAnnotationHot of shape" , VctAnnotationHot.shape)
+    # print("ecg, 2 lead of shape", Vctrecord.shape)
+    # print("VctAnnotationHot of shape", VctAnnotationHot.shape)
     # print('plotting extracted signal with annotation')
-    # wfdb.plotrec(record, annotation=annotation2, title='Record 100 from MIT-BIH Arrhythmia Database', timeunits = 'seconds')
+    # wfdb.plotrec(record, annotation=annotation2, title='Record 100 from MIT-BIH Arrhythmia Database',timeunits='seconds')
 
-    VctAnnotations = list(zip(annotation2.sample, annotation2.symbol))  ## zip coordinates + annotations (N),(t) etc)
+    VctAnnotations = list(zip(annotation.sample, annotation.symbol))  ## zip coordinates + annotations (N),(t) etc)
     # print(VctAnnotations)
     for i in range(len(VctAnnotations)):
         # print(VctAnnotations[i]) # Print to display annotations of an ecg
@@ -62,21 +61,21 @@ def get_ecg_data(datfile):
 
             if VctAnnotations[i][1] == "p":
                 if VctAnnotations[i - 1][1] == "(":
-                    pstart = VctAnnotations[i - 1][0]
+                    pstart = VctAnnotations[i - 1][0] - FirstLstannot
                 if VctAnnotations[i + 1][1] == ")":
-                    pend = VctAnnotations[i + 1][0]
+                    pend = VctAnnotations[i + 1][0] - FirstLstannot
                 if VctAnnotations[i + 3][1] == "N":
-                    rpos = VctAnnotations[i + 3][0]
+                    rpos = VctAnnotations[i + 3][0] - FirstLstannot
                     if VctAnnotations[i + 2][1] == "(":
-                        qpos = VctAnnotations[i + 2][0]
+                        qpos = VctAnnotations[i + 2][0] - FirstLstannot
                     if VctAnnotations[i + 4][1] == ")":
-                        spos = VctAnnotations[i + 4][0]
-                    for ii in range(0, 8):  ## search for t (sometimes the "(" for the t  is missing  )
+                        spos = VctAnnotations[i + 4][0] - FirstLstannot
+                    for ii in range(4, 8):  ## search for t (sometimes the "(" for the t  is missing  )
                         if VctAnnotations[i + ii][1] == "t":
                             tpos = VctAnnotations[i + ii][0]
                             if VctAnnotations[i + ii + 1][1] == ")":
-                                tendpos = VctAnnotations[i + ii + 1][0]
-                                # 				#print(ppos,qpos,rpos,spos,tendpos)
+                                tendpos = VctAnnotations[i + ii + 1][0] - FirstLstannot
+                                # print(ppos,qpos,rpos,spos,tendpos)
                                 VctAnnotationHot[0][pstart:pend] = 1  # P segment
                                 VctAnnotationHot[1][
                                 pend:qpos] = 1  # part "nothing" between P and Q, previously left unnanotated, but categorical probably can't deal with that
@@ -85,6 +84,7 @@ def get_ecg_data(datfile):
                                 VctAnnotationHot[4][spos:tendpos] = 1  # ST (from end of S to end of T)
                                 VctAnnotationHot[5][
                                 pstart:tendpos] = 0  # tendpos:pstart becomes 1, because it is inverted above
+                                break
         except IndexError:
             pass
 
@@ -117,7 +117,7 @@ def splitseq(x, n, o):
         except UnboundLocalError:  ## on init
             xx = xpart
     print("output: ", xx.shape)
-    return (xx)
+    return xx
 
 
 def remove_seq_gaps(x, y):
@@ -140,7 +140,7 @@ def remove_seq_gaps(x, y):
             pass
     x, y = x[include, :], y[include, :]
     print(" after shape x,y", x.shape, y.shape)
-    return (x, y)
+    return x, y
 
 
 def normalizesignal(x):
@@ -220,10 +220,9 @@ def LoaddDatFiles(datfiles):
         if os.path.isfile(qf):
             # print("yes",qf,datfile)
             x, y = get_ecg_data(datfile)
-            x, y = remove_seq_gaps(x, y)
+            # x, y = remove_seq_gaps(x, y)
 
-            x, y = splitseq(x, 1000, 150), splitseq(y, 1000,
-                                                    150)  ## create equal sized numpy arrays of n size and overlap of o
+            x, y = splitseq(x, 1000, 150), splitseq(y, 1000, 150)
 
             x = normalizesignal_array(x)
             ## todo; add noise, shuffle leads etc. ?
@@ -233,7 +232,7 @@ def LoaddDatFiles(datfiles):
             except NameError:  ## if xx does not exist yet (on init)
                 xx = x
                 yy = y
-    return (xx, yy)
+    return xx, yy
 
 
 def unison_shuffled_copies(a, b):
@@ -255,8 +254,7 @@ def get_session(gpu_fraction=0.8):
 def getmodel():
     model = Sequential()
     model.add(Dense(32, W_regularizer=regularizers.l2(l=0.01), input_shape=(seqlength, features)))
-    model.add(Bidirectional(
-        LSTM(32, return_sequences=True)))  # , input_shape=(seqlength, features)) ) ### bidirectional ---><---
+    model.add(Bidirectional(LSTM(32, return_sequences=True)))
     model.add(Dropout(0.2))
     model.add(BatchNormalization())
     model.add(Dense(64, activation='relu', W_regularizer=regularizers.l2(l=0.01)))
@@ -266,54 +264,35 @@ def getmodel():
     adam = optimizers.adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
     model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
     print(model.summary())
-    return (model)
+    return model
 
 
 ##################################################################
 ##################################################################
-qtdbpath = 'https://physionet.org/content/qtdb/1.0.0/'
+qtdbpath = './qt-database-1.0.0/'
 perct = 0.81  # percentage training
 percv = 0.19  # percentage validation
 
+# no P annotated
 exclude = set()
-exclude.update(
-    ["sel35", "sel36", "sel37", "sel50", "sel102", "sel104", "sel221", "sel232", "sel310"])  # no P annotated:
-##################################################################
-# datfile=qtdbpath+"sel49.dat"  ## single ECG to test if loading works.  
-# x,y=get_ecg_data(datfile)
-# print(x.shape,y.shape)
-# # for i in range(y.shape[0]): #Invert QT-label to actually represent QT. Does give overlapping labels
-# # 	y[i][0] = 1 - y[i][0]
-# plotecg(x,y,0,y.shape[0]) ## plot all
-# x,y=remove_seq_gaps(x,y) ## remove 'annotation gaps'
-# plotecg(x,y,0,y.shape[0]) ## plot all
-# x,y=splitseq(x,750,150),splitseq(y,750,150) ## create equal sized numpy arrays of n size and overlap of o 
-# exit()
-##################################################################
+exclude.update(["sel35", "sel36", "sel37", "sel50", "sel102", "sel104", "sel221", "sel232", "sel310"])
 
 # load data
 datfiles = glob.glob(qtdbpath + "*.dat")
 xxt, yyt = LoaddDatFiles(datfiles[:round(len(datfiles) * perct)])  # training data.
-xxt, yyt = unison_shuffled_copies(xxt, yyt)  ### shuffle
+xxt, yyt = unison_shuffled_copies(xxt, yyt)  ## shuffle
 xxv, yyv = LoaddDatFiles(datfiles[-round(len(datfiles) * percv):])  ## validation data.
 seqlength = xxt.shape[1]
 features = xxt.shape[2]
 dimout = yyt.shape[2]
 print("xxv/validation shape: {}, Seqlength: {}, Features: {}".format(xxv.shape[0], seqlength, features))
-# #plot validation ecgs 
-# with PdfPages('ecgs_xxv.pdf') as pdf:
-# 	for i in range( xxv.shape[0] ): 
-# 		print (i)
-# 		plotecg(xxv[i,:,:],yyv[i,:,:],0,yyv.shape[1])
-# 		pdf.savefig()
-# 		plt.close()
 
 # call keras/tensorflow and build lstm model 
 KTF.set_session(get_session())
 with tf.device('/cpu:0'):  # switch to /cpu:0 to use cpu
     if not os.path.isfile('model.h5'):
         model = getmodel()  # build model
-        model.fit(xxt, yyt, batch_size=32, epochs=100, verbose=1)  # train the model
+        model.fit(xxt, yyt, batch_size=32, epochs=100, verbose=2)  # train the model
         model.save('model.h5')
 
     model = load_model('model.h5')
@@ -330,12 +309,9 @@ with tf.device('/cpu:0'):  # switch to /cpu:0 to use cpu
         yy_predicted[i, :, :] = b
 
     # plot:
-    with PdfPages('ecg.pdf') as pdf:
-        for i in range(xxv.shape[0]):
-            print(i)
-            plotecg_validation(xxv[i, :, :], yy_predicted[i, :, :], yyv[i, :, :], 0,
-                               yy_predicted.shape[1])  # top = predicted, bottom=true
+
+    for i in range(xxv.shape[0]):
+        with PdfPages('./plots/ecg{i}.pdf'.format(i=i)) as pdf:
+            plotecg_validation(xxv[i, :, :], yy_predicted[i, :, :], yyv[i, :, :], 0, yy_predicted.shape[1])
             pdf.savefig()
             plt.close()
-
-# plotecg(xv[1,:,:],yv[1,:,:],0,yv.shape[1]) ## plot first seq
