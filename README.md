@@ -31,7 +31,7 @@ model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accurac
 
 ## Output
 A 2 lead ECG, the colors indicate P-Pend(yellow),Pend-Q(green), Q-R(red),R-S(purple),S-Tend(brown),Tend-P(pink). Training took about an hour on 6 cores. 
-![example output](https://github.com/niekverw/Deep-Learning-Based-ECG-Annotator/blob/master/images/example.png?raw=true)
+![example output](./images/example.png)
 - Colors at the top show true annotations
 - Colors at the bottom show predicted annotations
 
