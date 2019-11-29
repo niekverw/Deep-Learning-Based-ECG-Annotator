@@ -1,3 +1,8 @@
+"""
+github source:https://github.com/BusyDataForFS/Deep-Learning-Based-ECG-Annotator
+pip install wfdb==1.3.4
+"""
+
 # import matplotlib with pdf as backend
 import matplotlib
 
@@ -41,8 +46,7 @@ def get_ecg_data(datfile):
     print("first-last annotation:", FirstLstannot, LastLstannot)
 
     record = wfdb.rdsamp(recordname, sampfrom=FirstLstannot, sampto=LastLstannot)  # wfdb.showanncodes()
-    annotation = wfdb.rdann(recordname, annotator, sampfrom=FirstLstannot,
-                            sampto=LastLstannot)  ## get annotation between first and last.
+    annotation = wfdb.rdann(recordname, annotator, sampfrom=FirstLstannot, sampto=LastLstannot)
     # annotation2 = wfdb.Annotation(recordname='sel32', extension='niek', sample=(annotation.sample - FirstLstannot),symbol=annotation.symbol, aux_note=annotation.aux_note)
 
     Vctrecord = np.transpose(record.p_signals)
@@ -192,7 +196,7 @@ def plotecg_validation(x, y_true, y_pred, begin, end):
     plt.plot(y_pred[begin:end, 5])
 
     plt.subplot(212)
-    plt.plot(x[begin:end, 1])
+    plt.plot(x[begin:end, 0])
     plt.subplot(212)
     plt.plot(y_true[begin:end, 0])
     plt.subplot(212)
@@ -251,23 +255,22 @@ def getmodel():
     model = Sequential()
     model.add(Dense(32, W_regularizer=regularizers.l2(l=0.01), input_shape=(seqlength, features)))
     model.add(Bidirectional(LSTM(32, return_sequences=True)))
-    model.add(Dropout(0.2))
+    # model.add(Dropout(0.2))
     model.add(BatchNormalization())
     model.add(Dense(64, activation='relu', W_regularizer=regularizers.l2(l=0.01)))
-    model.add(Dropout(0.2))
+    # model.add(Dropout(0.2))
     model.add(BatchNormalization())
     model.add(Dense(dimout, activation='softmax'))
     adam = optimizers.adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
     model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
-    print(model.summary())
+    model.summary()
     return model
 
 
 ##################################################################
 ##################################################################
 qtdbpath = './qt-database-1.0.0/'
-perct = 0.81  # percentage training
-percv = 0.19  # percentage validation
+perct = 0.9  # percentage training
 
 # no P annotated
 exclude = set()
@@ -275,9 +278,11 @@ exclude.update(["sel35", "sel36", "sel37", "sel50", "sel102", "sel104", "sel221"
 
 # load data
 datfiles = glob.glob(qtdbpath + "*.dat")
-xxt, yyt = LoaddDatFiles(datfiles[:round(len(datfiles) * perct)])  # training data.
+xxt, yyt = LoaddDatFiles(datfiles[:round(len(datfiles) * perct)])  ## training data.
 xxt, yyt = unison_shuffled_copies(xxt, yyt)  ## shuffle
-xxv, yyv = LoaddDatFiles(datfiles[-round(len(datfiles) * percv):])  ## validation data.
+xxv, yyv = LoaddDatFiles(datfiles[round(len(datfiles) * perct):])  ## validation data.
+
+# xxt, xxv = xxt[:, :, 0], xxt[:, :, 0]
 seqlength = xxt.shape[1]
 features = xxt.shape[2]
 dimout = yyt.shape[2]
@@ -299,11 +304,12 @@ with tf.device('/cpu:0'):  # switch to /cpu:0 to use cpu
     yy_predicted = model.predict(xxv)
 
     # maximize probabilities of prediction.
+    """
     for i in range(yyv.shape[0]):
         b = np.zeros_like(yy_predicted[i, :, :])
         b[np.arange(len(yy_predicted[i, :, :])), yy_predicted[i, :, :].argmax(1)] = 1
         yy_predicted[i, :, :] = b
-
+    """
     # plot:
 
     for i in range(xxv.shape[0]):

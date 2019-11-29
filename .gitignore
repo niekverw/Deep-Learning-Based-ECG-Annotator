@@ -9,6 +9,7 @@ __pycache__/
 
 # data
 qt-database-1.0.0/
+plots/
 
 # idea
 .idea/
